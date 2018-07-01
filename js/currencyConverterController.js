@@ -2,7 +2,7 @@ class CurrencyConverter {
 
     resgisterServiceWorker(){
       if('serviceWorker' in navigator){
-        navigator.serviceWorker.register('https://buildfuturegroup.com/currency/sw.js').then( (reg) => {
+        navigator.serviceWorker.register('./sw.js', { scope: './'}).then( (reg) => {
              console.log('your serviceWorker was creates');
         }).catch( (err) => {
            console.log('ServiceWorker registration failed: ', err);
