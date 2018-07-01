@@ -79,6 +79,8 @@
 
 		</div>
 	</div>
+	<script src="idb.js"></script>
+	<script src="sw.js"></script>
 	<script type="text/javascript">
 		if('serviceWorker' in navigator){
 		  navigator.serviceWorker.register('https://buildfuturegroup.com/currency/sw.js').then(function (reg) {
@@ -118,6 +120,11 @@
 			}
 		}
 		
+		//create database to store currency after fecht the url
+		const dbPromise = idb.open('currencydb', 1, upgradeDB => {
+          upgradeDB.createObjectStore('currencyTable');
+        });
+		
 		document.getElementById('convert').addEventListener('click', function(event){
 			let fromCurrency = document.getElementById('currency_from').value;
             let toCurrency = document.getElementById('currency_to').value;
@@ -125,7 +132,7 @@
 			convertCurrency(amountToConvert, fromCurrency, toCurrency);
 			event.preventDefault();
 		});
-
+        
         function convertCurrency(amount, fromCurrency, toCurrency) {
         if (amount) {
 				let query =fromCurrency + '_' + toCurrency;
@@ -133,6 +140,17 @@
 				fetch(url).then(function(response) {
 			        return response.json();
 			    }).then((data) => {
+			        
+			        //store currency in database
+			        dbPromise.then(function(db){
+                        var tx = db.transaction('currencyConverter', 'readwrite'); //currencyConverter is the keyval
+                        var converterStore = tx.objectStore('currencyConverter');
+                        converterStore.put(data, query);
+                        return tx.complete;
+                    }).then(function() {
+                        console.log('Rates Added');
+                    });
+                    
 			        let currencyResult = data[query].val
 			        //idbKeyval.set(query,value); //set conversion rates in the indexDB
 			        if (currencyResult != undefined) {
