@@ -35,7 +35,7 @@
 				<div class="form-group">
 				  <!--<label class="col-md-4 control-label" for="value"></label>-->  
 				  <div class="col-md-8">
-				  <input id="amount" name="amount" type="text" placeholder="Value to convert" class="form-control input-lgs" required="">
+				  <input id="amount" name="amount" type="number" min="0" placeholder="Value to convert" class="form-control input-lgs" required="">
 				    
 				  </div>
 				</div>
@@ -79,8 +79,6 @@
 
 		</div>
 	</div>
-	<script src="sw.js"></script>
-	<script src="index.js"></script>
 	<script type="text/javascript">
 		if('serviceWorker' in navigator){
 		  navigator.serviceWorker.register('https://buildfuturegroup.com/currency/sw.js').then(function (reg) {
