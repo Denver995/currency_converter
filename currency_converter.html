@@ -81,11 +81,12 @@
 	</div>
 	<script src="./js/idb.js"></script>
 	<script src="./js/currencyConverterController.js"></script>
-	<script src="./js/sw.js"></script>
 	<script src="sw.js"></script>
 	<script type="text/javascript">
+	
+	    let currencyConverter = new CurrencyConverter();
 		//call service worker
-		CurrencyConverter.resgisterServiceWorker();
+		currencyConverter.resgisterServiceWorker();
 
 		//get selected currencies to convert
 		let currency_from = document.getElementById('currency_from');
@@ -94,7 +95,7 @@
 		amount.value = 2;
 		let result = document.getElementById('result');
 		
-		CurrencyConverter.loadCurrency();
+		currencyConverter.loadCurrency();
 		//create database to store currency after fecht the url
 		var dbPromise = idb.open('currencyConverter', 1, function(upgradeDb) {
             upgradeDb.createObjectStore('currencyConverter');
@@ -104,7 +105,7 @@
 			let fromCurrency = document.getElementById('currency_from').value;
             let toCurrency = document.getElementById('currency_to').value;
             let amountToConvert= amount.value;
-			CurrencyConverter.convertCurrency(amountToConvert, fromCurrency, toCurrency);
+			currencyConverter.convertCurrency(amountToConvert, fromCurrency, toCurrency);
 			event.preventDefault();
 		});
         
