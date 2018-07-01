@@ -79,17 +79,10 @@
 
 		</div>
 	</div>
-	<script src="idb.js"></script>
+	<script src="./js/idb.js"></script>
+	<script src="./js/sw.js"></script>
 	<script src="sw.js"></script>
 	<script type="text/javascript">
-		if('serviceWorker' in navigator){
-		  navigator.serviceWorker.register('https://buildfuturegroup.com/currency/sw.js').then(function (reg) {
-		    console.log('your serviceWorker was creates');
-		    }).catch(function(err){
-		    	console.log('ServiceWorker registration failed: ', err);
-		    });
-		}
-		
 		let currency_from = document.getElementById('currency_from');
 		let currency_to = document.getElementById('currency_to');
 		let amount = document.getElementById('amount');
@@ -121,8 +114,8 @@
 		}
 		
 		//create database to store currency after fecht the url
-		const dbPromise = idb.open('currencydb', 1, upgradeDB => {
-          upgradeDB.createObjectStore('currencyTable');
+		var dbPromise = idb.open('currencyConverter', 1, function(upgradeDb) {
+            upgradeDb.createObjectStore('currencyConverter');
         });
 		
 		document.getElementById('convert').addEventListener('click', function(event){
@@ -135,22 +128,21 @@
         
         function convertCurrency(amount, fromCurrency, toCurrency) {
         if (amount) {
-				let query =fromCurrency + '_' + toCurrency;
+				let query =`${fromCurrency}_${toCurrency}`;
 				let url = `https://free.currencyconverterapi.com/api/v5/convert?q=${query}&compact=y`;
 				fetch(url).then(function(response) {
 			        return response.json();
 			    }).then((data) => {
 			        
-			        //store currency in database
 			        dbPromise.then(function(db){
-                        var tx = db.transaction('currencyConverter', 'readwrite'); //currencyConverter is the keyval
+                        var tx = db.transaction('currencyConverter', 'readwrite');
                         var converterStore = tx.objectStore('currencyConverter');
                         converterStore.put(data, query);
                         return tx.complete;
                     }).then(function() {
                         console.log('Rates Added');
                     });
-                    
+			        
 			        let currencyResult = data[query].val
 			        //idbKeyval.set(query,value); //set conversion rates in the indexDB
 			        if (currencyResult != undefined) {
@@ -166,6 +158,7 @@
 				})
 			}
         }
+			        
 	</script>
 </body>
 </html>
