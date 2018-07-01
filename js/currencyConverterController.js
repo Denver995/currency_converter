@@ -69,6 +69,9 @@ class CurrencyConverter {
           for(const key in currencies) {
             let rate = currencies[key].val;
             rate = amount * rate;
+            result.value = rate;
+            console.log(result.value);
+            result.appendChild(document.createTextNode(rate));
 
             document.getElementById("result").value=rate;
 
