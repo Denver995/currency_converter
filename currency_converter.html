@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Currency converter</title>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<style>
+		.jumbotron {
+		  color: #533; 
+		  background-color: #9bb 
+		}
+		body{
+			background-color: #5883B4;
+
+		}
+	</style>
+</head>
+<body>
+	<div class="jumbotron">
+	  <div class="container">
+	    <h1>Currency Converter</h1>
+	    <p>convert one currency to another while offline or online using this app!</p>
+	    <p><a class="btn btn-info btn-lg" role="button">Try it now to convert what you want<span class="glyphicon glyphicon glyphicon-hand-right"></span></a></p>
+	  </div>
+	</div>
+	<div class="row converter">
+		<div class="container">
+			<form class="form-inline">
+				<fieldset>
+
+				<!-- Form Name -->
+				<legend>Currency converter</legend>
+
+				<!-- Text input-->
+				<div class="form-group">
+				  <!--<label class="col-md-4 control-label" for="value"></label>-->  
+				  <div class="col-md-8">
+				  <input id="amount" name="amount" type="text" placeholder="Value to convert" class="form-control input-lgs" required="">
+				    
+				  </div>
+				</div>
+
+				<!-- Select Basic -->
+				<div class="form-group">
+				  <label class="col-md-4 control-label" for="currency_from">From</label>
+				  <div class="col-md-2">
+				    <select id="currency_from" name="currency_from" class="form-control">
+				    </select>
+				  </div>
+				</div>
+
+				<!-- Select Basic -->
+				<div class="form-group">
+				  <label class="col-md-4 control-label" for="currency_to">To</label>
+				  <div class="col-md-2">
+				    <select id="currency_to" name="currency_to" class="form-control">
+				    </select>
+				  </div>
+				</div>
+
+				<!-- Button -->
+				<div class="form-group">
+				  <label class="col-md-4 control-label" for="convert"></label>
+				  <div class="col-md-4">
+				    <button id="convert" name="convert" class="btn btn-info">Convert now</button>
+				  </div>
+				</div>
+
+				<div class="form-group">
+				  <!--<label class="col-md-4 control-label" for="value"></label>-->  
+				  <div class="col-md-8">
+				  <input id="result" name="result" type="text" placeholder="result" class="form-control input-lgs">
+				    
+				  </div>
+				</div>
+
+				</fieldset>
+				</form>
+
+		</div>
+	</div>
+	<script src="sw.js"></script>
+	<script src="index.js"></script>
+	<script type="text/javascript">
+		if('serviceWorker' in navigator){
+		  navigator.serviceWorker.register('https://buildfuturegroup.com/currency/sw.js').then(function (reg) {
+		    console.log('your serviceWorker was creates');
+		    }).catch(function(err){
+		    	console.log('ServiceWorker registration failed: ', err);
+		    });
+		}
+		
+		let currency_from = document.getElementById('currency_from');
+		let currency_to = document.getElementById('currency_to');
+		let amount = document.getElementById('amount');
+		amount.value = 2;
+		let result = document.getElementById('result');
+		
+		loadCurrency();
+		
+		function loadCurrency() {
+			fetch('https://free.currencyconverterapi.com/api/v5/currencies').then((response) => {
+			return response.json();
+			}).then((data) => {
+					let currencies = data.results;
+					createOptionElement(currencies);
+				})
+		}
+		
+		function createOptionElement(currencies) {
+			for(let currency in currencies){
+				let currency_option_from = document.createElement('option');
+				let currency_option_to = document.createElement('option');
+				currency_option_from.value = currency;
+				currency_option_to.value = currency;
+				currency_option_from.appendChild(document.createTextNode(currency));
+				currency_option_to.appendChild(document.createTextNode(currency));
+				currency_from.appendChild(currency_option_from);
+				currency_to.appendChild(currency_option_to);
+			}
+		}
+		
+		document.getElementById('convert').addEventListener('click', function(event){
+			let fromCurrency = document.getElementById('currency_from').value;
+            let toCurrency = document.getElementById('currency_to').value;
+            let amountToConvert= amount.value;
+			convertCurrency(amountToConvert, fromCurrency, toCurrency);
+			event.preventDefault();
+		});
+
+        function convertCurrency(amount, fromCurrency, toCurrency) {
+        if (amount) {
+				let query =fromCurrency + '_' + toCurrency;
+				let url = `https://free.currencyconverterapi.com/api/v5/convert?q=${query}&compact=y`;
+				fetch(url).then(function(response) {
+			        return response.json();
+			    }).then((data) => {
+			        let currencyResult = data[query].val
+			        //idbKeyval.set(query,value); //set conversion rates in the indexDB
+			        if (currencyResult != undefined) {
+                        let converted = parseFloat(currencyResult) * parseFloat(amount);
+                        result.value = converted;
+                        console.log(converted);
+                        console.log(result.value);
+				        result.appendChild(document.createTextNode(converted));
+                    } else {
+                      let err = new Error("Value not found for " + query);
+                      console.log(err);
+                    }
+				})
+			}
+        }
+	</script>
+</body>
+</html>
