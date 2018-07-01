@@ -33,33 +33,48 @@ class CurrencyConverter {
     }
 
     convertCurrency(amount, fromCurrency, toCurrency) {
-      if (amount) {
-        let query =`${fromCurrency}_${toCurrency}`;
-        let url = `https://free.currencyconverterapi.com/api/v5/convert?q=${query}&compact=y`;
-        fetch(url).then(function(response) {
-            return response.json();
-        }).then((data) => {  
-            dbPromise.then(function(db){
-                        var tx = db.transaction('currencyConverter', 'readwrite');
-                        var converterStore = tx.objectStore('currencyConverter');
-                        converterStore.put(data, query);
-                          return tx.complete;
-                      }).then(function() {
-                          console.log('Rates Added');
-                      });
-                
-                let currencyResult = data[query].val
-                if (currencyResult !== undefined) {
-                          let converted = parseFloat(currencyResult) * parseFloat(amount);
-                          result.value = converted;
-                          console.log(converted);
-                          console.log(result.value);
-                  result.appendChild(document.createTextNode(converted));
-                      } else {
-                        let err = new Error("Value not found for " + query);
-                        console.log(err);
-                      }
-              })
+      let query =`${fromCurrency}_${toCurrency}`;
+      let url = `https://free.currencyconverterapi.com/api/v5/convert?q=${query}&compact=y`;
+      dbPromise.then(db => {
+        const tx = db.transaction('currencyConverter');
+        const converterStore = tx.objectStore('currencyConverter');
+
+        return converterStore.openCursor(query);
+        }).then(val => {
+          if(val === undefined) {
+            fetch(url)
+            .then(response => response.json())
+            .then(data => {
+              dbPromise.then(db => {
+                const tx = db.transaction('currencyConverter', 'readwrite');
+                const converterStore = tx.objectStore('currencyConverter');
+                converterStore.put(data, query);
+                return tx.complete;
+              }).then(() => {
+                console.log('Rates Added');
+              });
+              
+              let currencies = data.results;
+
+              for(const key in currencies) {
+                let rate = currencies[key].val;
+                rate = amount * rate;
+
+                document.getElementById("result").value=rate;
+              }
+            });
+          } else {
+          let currencies = val._cursor.value.results;
+
+          for(const key in currencies) {
+            let rate = currencies[key].val;
+            rate = amount * rate;
+
+            document.getElementById("result").value=rate;
+
+          }
         }
-    }
+      });
+}
+
 }
