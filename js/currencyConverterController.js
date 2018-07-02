@@ -41,40 +41,38 @@ class CurrencyConverter {
 
         return converterStore.openCursor(query);
         }).then(val => {
-          if(val === undefined) {
-            fetch(url)
-            .then(response => response.json())
-            .then(data => {
-              dbPromise.then(db => {
-                const tx = db.transaction('currencyConverter', 'readwrite');
-                const converterStore = tx.objectStore('currencyConverter');
-                converterStore.put(data, query);
-                return tx.complete;
-              }).then(() => {
-                console.log('Rates Added');
-              });
-              
-              let currencies = data.results;
-
-              for(const key in currencies) {
-                let rate = currencies[key].val;
-                rate = amount * rate;
-
-                document.getElementById("result").value=rate;
-              }
+        if(val === undefined) {
+          fetch(url)
+          .then(response => response.json())
+          .then(data => {
+            dbPromise.then(db => {
+              const tx = db.transaction('currencyConverter', 'readwrite');
+              const converterStore = tx.objectStore('currencyConverter');
+              converterStore.put(data, query);
+              return tx.complete;
+            }).then(() => {
+              console.log('Rates Added');
             });
-          } else {
-          let currencies = val._cursor.value.results;
-
-          for(const key in currencies) {
-            let rate = currencies[key].val;
-            rate = amount * rate;
-            result.value = rate;
+            
+            let currencies = data[query].val;
+            let converted = parseFloat(currencies) * parseFloat(amount);
+            result.value = converted;
+            console.log(converted);
             console.log(result.value);
-            result.appendChild(document.createTextNode(rate));
-
-            document.getElementById("result").value=rate;
-
+      result.appendChild(document.createTextNode(converted));
+            
+          });
+        } else {
+            let currencies = val._cursor.value;
+            for(const key in currencies) {
+                console.log(key);
+                if( key == query ){
+                    let rate = currencies[key].val;
+                    let rateConverted = amount * rate;
+                    result.value=rateConverted;
+                    console.log(rateConverted);
+                    result.appendChild(document.createTextNode(rateConverted));   
+                }
           }
         }
       });
